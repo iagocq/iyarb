@@ -1,0 +1,17 @@
+add-symbol-file obj/bootsector.elf
+add-symbol-file obj/stage1.5.elf
+target remote localhost:1234
+set disassembly-flavor intel
+#break __centry
+#break _entry
+#continue
+set architecture i8086
+layout asm
+layout regs
+focus cmd
+break *0x7c00
+b bootsector.asm:46
+b bootsector.asm:61
+b bootsector.asm:118
+b stage1.5.asm:36
+list
