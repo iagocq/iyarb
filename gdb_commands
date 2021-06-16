@@ -10,8 +10,8 @@ layout asm
 layout regs
 focus cmd
 break *0x7c00
-b bootsector.asm:46
-b bootsector.asm:61
-b bootsector.asm:118
+b bootsector.asm:47
+b bootsector.asm:63
+b bootsector.asm:120
 b stage1.5.asm:36
 list

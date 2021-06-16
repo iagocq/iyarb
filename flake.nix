@@ -58,6 +58,7 @@
           alias m=make
           alias mr='m run'
           alias md='m debug'
+          alias mc='m clean'
         '';
       } // buildEnvVars;
     }
