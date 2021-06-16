@@ -15,24 +15,27 @@
 
   outputs = inputs@{ self, nixpkgs, flake-utils, rust-overlay, crate2nix, ... }:
   let
-    name = "raytracer";
+    name = "stage2";
   in
   flake-utils.lib.eachDefaultSystem (system:
     let
+      rust-nightly = (pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default)).override {
+        extensions = [ "rust-src" ];
+      };
       pkgs = import nixpkgs {
         inherit system;
         overlays = [
           rust-overlay.overlay
           (self: super: {
-            rustc = self.rust-bin.stable.latest.default;
-            cargo = self.rust-bin.stable.latest.default;
+            rustc = rust-nightly;
+            cargo = rust-nightly;
           })
         ];
       };
       inherit (import "${crate2nix}/tools.nix" { inherit pkgs; }) generatedCargoNix;
       project = pkgs.callPackage (generatedCargoNix {
         inherit name;
-        src = ./.;
+        src = ./stage2;
       }) {
         defaultCrateOverrides = pkgs.defaultCrateOverrides // {
           "${name}" = oldAttrs: {
@@ -41,23 +44,13 @@
         };
       };
       
-      buildInputs = with pkgs; [ qemu ];
+      buildInputs = with pkgs; [ ];
       nativeBuildInputs = with pkgs; [ nasm rustc cargo clippy pkgconfig nixpkgs-fmt ];
       buildEnvVars = {
         PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
       };
     in
     rec {
-      # packages.${name} = project.rootCrate.build;
-
-      # defaultPackage = packages.${name};
-
-      # apps.${name} = flake-utils.lib.mkApp {
-      #   inherit name;
-      #   drv = packages.${name};
-      # };
-      # defaultApp = apps.${name};
-
       devShell = pkgs.mkShell {
         inherit buildInputs nativeBuildInputs;
         RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";

@@ -15,6 +15,18 @@ obj/stage1.5.elf: obj/stage1.5.o
 obj/stage1.5.o: boot/stage1.5.asm | obj
 	nasm -f elf32 -g -F dwarf -Ox -o $@ $^
 
+current_dir = $(shell pwd)
+obj/stage2.bin: $(current_dir)/stage2/target/i686-stage2/release/stage2 | obj
+	touch obj/stage2.bin
+$(current_dir)/stage2/target/i686-stage2/release/stage2:
+	cd stage2 && cargo build --release
+
+-include stage2/target/i686-stage2/release/stage2.d
+
+clean:
+	rm -rf obj
+	cd stage2 && cargo clean
+
 run: build
 	./install.sh
 	qemu-system-i386 -drive id=cd0,file=test.img,format=raw
@@ -24,4 +36,6 @@ debug: build
 	sleep 1
 	gdb -x gdb_commands
 obj:
-	mkdir obj
+	mkdir -p obj
+
+.PHONY: all build clean run debug
