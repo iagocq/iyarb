@@ -1,4 +1,4 @@
-; eax = cluster number, returns next cluster number
+; eax = cluster number
 ; eax, ebx, edx will be overwritten
 next_cluster:
     ; cluster_off = cluster * 4 = cluster << 2
@@ -26,21 +26,22 @@ read_cluster:
     mul     ebx
     add     eax, [data_start]
 
-    call    read_sectors
-
-    ret
+    ; we can just fall through to the function
+    ;call    read_sectors
+    ;
+    ;ret
 
 ; eax = sector number
 ; bx = number of sectors
 read_sectors:
     pushad
 
-    mov     [read_DAP.readn], bx
-    mov     [read_DAP.st_sector], eax
-
-    mov     dl, [drive_number]
-    mov     ah, 0x42
     mov     si, read_DAP
+    mov     [si+read_DAP.readn-read_DAP], bx
+    mov     [si+read_DAP.st_sector-read_DAP], eax
+
+    mov     dl, [si+drive_number-read_DAP]
+    mov     ah, 0x42
     int     0x13
 
     popad

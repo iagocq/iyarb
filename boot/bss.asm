@@ -13,13 +13,6 @@ ext_DAP:
     .bpps:      resb 2
     .edd_ptr:   resb 4
 
-drive_number:           resb 1
-data_start:             resd 1
-fat_start:              resd 1
-psectors_per_cluster:   resd 1
-bytes_per_psector:      resd 1
-stage2_path:            resb 23
-
 read_DAP:
     .size:      resb 1
     .unused:    resb 1
@@ -31,4 +24,12 @@ read_DAP:
 
     ; start sector (0 based)
     .st_sector: resb 8
+
+drive_number:           resb 1
+data_start:             resd 1
+fat_start:              resd 1
+psectors_per_cluster:   resd 1
+bytes_per_psector:      resd 1
+stage2_path:            resb 23
+
 bss_end:

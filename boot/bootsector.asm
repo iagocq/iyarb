@@ -60,7 +60,8 @@ start:
     mov     WORD [si], 0x1A
     mov     ah, 0x48
     int     0x13
-    jc      no_ext_die
+    mov     bl, NO_EXT_CODE
+    jc      die
 
     ; calculate and cache useful values
 
@@ -99,12 +100,12 @@ start:
 
     ; save fat_start
     shl     edx, cl
-    mov     [si+fat_start-bss_start], edx
+    add     [si+fat_start-bss_start], edx
 
     ; << psectors_per_lsector_lg
     shl     eax, cl
 
-    mov     [si+data_start-bss_start], eax
+    add     [si+data_start-bss_start], eax
 
     ; mov eax, 2 but with a single byte saved
     xor     eax, eax
@@ -115,15 +116,12 @@ start:
 
     %include "boot/find.asm"
 
-    ; stage2 entry was found
+    ; stage1.5 entry was found
     call    read_cluster
     jmp     read_buffer_segment:0
 
 not_found_die:
     mov     bl, STAGE15_NOT_FOUND_CODE
-    jmp     die
-no_ext_die:
-    mov     bl, NO_EXT_CODE
 
 die:
     mov     bh, 0x4f
@@ -143,7 +141,6 @@ direct_die:
 stage15_path: db 'BOOT       STAGE1  5  $'
 
 times 440-($-$$) db 0x42
-db 0xff
 times 510-($-$$) db 0x43
 
 ; boot signature

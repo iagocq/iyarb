@@ -1,5 +1,4 @@
 add-symbol-file obj/bootsector.elf
-add-symbol-file obj/stage1.5.elf
 target remote localhost:1234
 set disassembly-flavor intel
 #break __centry
@@ -13,5 +12,6 @@ break *0x7c00
 b bootsector.asm:47
 b bootsector.asm:63
 b bootsector.asm:120
+b find.asm:4
 b stage1.5.asm:36
 list
