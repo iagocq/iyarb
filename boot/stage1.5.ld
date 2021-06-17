@@ -1,8 +1,8 @@
-S2_ENTRY = 0x0;
+S15_ENTRY = 0x0;
 BSS = 0xa000;
 
 SECTIONS {
-    . = S2_ENTRY;
+    . = S15_ENTRY;
 
     .text : {
         *(.text)

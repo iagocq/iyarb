@@ -1,3 +1,5 @@
+#!/bin/sh
+
 set -euo pipefail
 
 dd if=obj/bootsector.bin of=test.img bs=1 conv=notrunc count=3

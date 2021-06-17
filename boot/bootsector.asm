@@ -1,4 +1,3 @@
-[default rel]
 [bits 16]
 
 global _start
@@ -46,10 +45,17 @@ start:
 
     mov     di, _start
 
+    ; check for extra info if we've been handed off from an MBR
+    cmp     bx, 0xe621
+    jne     .no_extra  
+    mov     [si+fat_start-bss_start], ebp
+    mov     [si+data_start-bss_start], ebp
+.no_extra:
+
     mov     [si+read_DAP.b_segment-bss_start], ax
 
-    ; stack @ 0000:7ff0
-    mov     sp, 0x7ff0
+    ; stack @ 0000:fff0
+    mov     sp, 0xfff0
 
     ; save drive number
     mov     [si+drive_number-bss_start], dl
@@ -57,7 +63,7 @@ start:
     mov     BYTE [si+read_DAP.size-bss_start], 0x10
 
     ; read drive parameters
-    mov     WORD [si], 0x1A
+    mov     WORD [si], 0x1a
     mov     ah, 0x48
     int     0x13
     mov     bl, NO_EXT_CODE
@@ -144,7 +150,6 @@ times 440-($-$$) db 0x42
 times 510-($-$$) db 0x43
 
 ; boot signature
-db 0x55
-db 0xAA
+db 0x55, 0xaa
 
 %include "boot/bss.asm"

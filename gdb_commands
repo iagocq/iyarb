@@ -1,17 +1,9 @@
-add-symbol-file obj/bootsector.elf
+add-symbol-file obj/mbr.elf
 target remote localhost:1234
 set disassembly-flavor intel
-#break __centry
-#break _entry
-#continue
-set architecture i8086
+set tdesc filename target.xml
 layout asm
 layout regs
 focus cmd
 break *0x7c00
-b bootsector.asm:47
-b bootsector.asm:63
-b bootsector.asm:120
-b find.asm:4
-b stage1.5.asm:36
 list

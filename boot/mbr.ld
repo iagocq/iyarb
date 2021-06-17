@@ -1,8 +1,8 @@
-BS_ENTRY = 0x7c00;
+MBR_ENTRY = 0x0500;
 BSS = 0xa000;
 
 SECTIONS {
-    . = BS_ENTRY;
+    . = MBR_ENTRY;
 
     .text : {
         *(.text)
