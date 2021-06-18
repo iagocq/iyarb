@@ -55,17 +55,17 @@ start:
 
     ; clear BSS
     mov     di, bss_start
+    mov     si, di
     mov     cx, bss_end-bss_start
     rep stosb
 
     ; save drive number
-    mov     [drive_number], dl
+    mov     [si+drive_number-bss_start], dl
 
-    mov     BYTE [read_DAP.size], 0x10
-    mov     WORD [read_DAP.b_segment], 0x7c0
+    mov     BYTE [si+read_DAP.size-bss_start], 0x10
+    mov     WORD [si+read_DAP.b_segment-bss_start], 0x7c0
 
     ; read drive parameters
-    mov     si, ext_DAP
     mov     WORD [si], 0x1a
     mov     ah, 0x48
     int     0x13
@@ -78,8 +78,7 @@ start:
 
 entry_loop:
     ; check if partition is flagged as bootable
-    mov     al, [si]
-    test    al, 0x80
+    test    BYTE [si], 0x80
     jz      .next
 
     ; lba of the first sector
