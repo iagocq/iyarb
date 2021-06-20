@@ -45,4 +45,4 @@ debug: install
 obj:
 	mkdir -p obj
 
-.PHONY: all build clean run debug
+.PHONY: all build clean install run debug

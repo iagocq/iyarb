@@ -73,8 +73,7 @@ start:
     jc      die
 
     mov     cx, 4
-    mov     si, O_PARTITION_TABLE
-    add     si, 0x500
+    mov     si, O_PARTITION_TABLE + 0x500
 
 entry_loop:
     ; check if partition is flagged as bootable

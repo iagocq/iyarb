@@ -12,7 +12,6 @@ start:
     mov     fs, ax
     mov     [read_DAP.b_segment], ax
 
-
     ; Copy stage2 path string to bss
     mov     si, stage2_path_far
     mov     di, stage2_path
@@ -56,7 +55,10 @@ load_loop:
     jb      load_loop
 
 .done:
+    xor     edx, edx
     mov     dl, [drive_number]
+    push    edx
+
     mov     ax, read_buffer_segment
     mov     ds, ax
     mov     es, ax
@@ -66,7 +68,6 @@ load_loop:
 
 not_found_die:
     mov     bl, STAGE2_NOT_FOUND_CODE
-    jmp     die
 
 die:
     mov     bh, 0x4f
