@@ -1,11 +1,11 @@
 all: build
-build: obj/bootsector.bin obj/stage1.5.bin obj/mbr.bin
+build: obj/stage1.bin obj/stage1.5.bin obj/mbr.bin obj/stage2.bin
 
-obj/bootsector.bin: obj/bootsector.elf
+obj/stage1.bin: obj/stage1.elf
 	objcopy -O binary $^ $@
-obj/bootsector.elf: obj/bootsector.o
-	ld -melf_i386 -T boot/bootsector.ld -o $@ $^
-obj/bootsector.o: boot/bootsector.asm | obj
+obj/stage1.elf: obj/stage1.o
+	ld -melf_i386 -T boot/stage1.ld -o $@ $^
+obj/stage1.o: boot/stage1.asm | obj
 	nasm -f elf32 -g -F dwarf -Ox -o $@ $^
 
 obj/stage1.5.bin: obj/stage1.5.elf
@@ -23,8 +23,10 @@ obj/mbr.o: boot/mbr.asm | obj
 	nasm -f elf32 -g -F dwarf -Ox -o $@ $^
 
 current_dir = $(shell pwd)
-obj/stage2.bin: $(current_dir)/stage2/target/i686-stage2/release/stage2 | obj
-	touch obj/stage2.bin
+obj/stage2.bin: obj/stage2.elf
+	objcopy -O binary $^ $@
+obj/stage2.elf: $(current_dir)/stage2/target/i686-stage2/release/stage2 | obj
+	cp $^ $@
 $(current_dir)/stage2/target/i686-stage2/release/stage2:
 	cd stage2 && cargo build --release
 
@@ -35,14 +37,22 @@ clean:
 	cd stage2 && cargo clean
 
 install: build
-	./install_mbr.sh
+	./install.sh
 run: install
-	qemu-system-i386 -drive id=cd0,file=test.img,format=raw
+	./run.sh
 debug: install
-	qemu-system-i386 -drive id=cd0,file=test.img,format=raw -s -S &
+	./run.sh -s -S &
 	sleep 1
 	gdb -x gdb_commands
 obj:
 	mkdir -p obj
 
-.PHONY: all build clean install run debug
+install-no-build:
+	./install.sh
+run-no-install:
+	./run.sh
+
+test:
+	cd stage2 && cargo test
+
+.PHONY: all build clean install run debug install-no-build run-no-install

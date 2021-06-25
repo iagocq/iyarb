@@ -14,5 +14,5 @@ stage1.5 also needs to be smaller than the smallest possible cluster on a reason
 Another restriction is that a cluster shouldn't be bigger than a segment, so only filesystems with clusters <=64KiB actually (theoretically) work.
 
 stage1.5 can properly load an entire file, as long as it isn't too big and starts overwriting other stuff.
-The file starts being written at 0x20000, and can be written to up to 0x80000 without messing with other things ( https://wiki.osdev.org/Memory_Map_(x86) ).
-That gives us 384KiB of headroom for a stage2.
+The file starts being written to 0x00500, and can be written to up to 0x6ff00 without messing with other things ( https://wiki.osdev.org/Memory_Map_(x86) and stage1.5 stuff).
+That gives us 446.5KiB of headroom for a stage2.

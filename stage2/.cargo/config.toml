@@ -4,3 +4,6 @@ build-std-features = [ "compiler-builtins-mem" ]
 
 [build]
 target = "i686-stage2.json"
+
+[target.i686-stage2]
+runner = [ "./run.sh" ]

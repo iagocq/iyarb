@@ -43,7 +43,7 @@
           } // buildEnvVars;
         };
       };
-      
+
       buildInputs = with pkgs; [ ];
       nativeBuildInputs = with pkgs; [ nasm rustc cargo clippy pkgconfig nixpkgs-fmt ];
       buildEnvVars = {

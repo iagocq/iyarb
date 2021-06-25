@@ -2,7 +2,7 @@
 
 global _start
 
-%define read_buffer_segment     0x1000
+%define read_buffer_segment     0x7000
 
 %define NO_EXT_CODE             'E'
 %define STAGE15_NOT_FOUND_CODE  '1'
@@ -47,7 +47,7 @@ start:
 
     ; check for extra info if we've been handed off from an MBR
     cmp     bx, 0xe621
-    jne     .no_extra  
+    jne     .no_extra
     mov     [si+fat_start-bss_start], ebp
     mov     [si+data_start-bss_start], ebp
 .no_extra:

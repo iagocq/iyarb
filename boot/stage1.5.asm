@@ -1,18 +1,33 @@
 [default rel]
 [bits 16]
 
-%define read_buffer_segment     0x2000
+%define read_buffer_segment     0x50
 
 %define STAGE2_NOT_FOUND_CODE   '2'
 
 section .text
 
 start:
+    ; copy bss from 0000:a000 to 6ff0:0000
+    mov     cx, (bss_end-bss_start+1)/2
+    mov     si, 0xa000
+    xor     di, di
+    mov     ax, 0x6ff0
+    mov     es, ax
+    push    ax      ; save bss segment
+
+    .copy_bss:
+        lodsw
+        stosw
+        loop    .copy_bss
+
+    pop     ds      ; load bss segment to ds
+
     mov     ax, read_buffer_segment
     mov     fs, ax
     mov     [read_DAP.b_segment], ax
 
-    ; Copy stage2 path string to bss
+    ; copy stage2 path string to bss
     mov     si, stage2_path_far
     mov     di, stage2_path
     push    di
@@ -21,14 +36,14 @@ start:
     mov     ax, cs
     mov     ds, ax
     mov     cx, 23
-    .copy:
+    .copy_path:
         lodsb
         stosb
-        loop    .copy
+        loop    .copy_path
     pop     ds
 
-    pop     di
-    mov     eax, 2
+    pop     di      ; load stage2_path
+    mov     eax, 2  ; root directory cluster
     %include "boot/find.asm"
 
     ; prepare cx to be added to the buffer segment every iteration
@@ -39,17 +54,15 @@ start:
     mov     cx, ax
     pop     eax
 load_loop:
+    push    eax
     call    read_cluster
-    push    ax
 
     mov     ax, fs
     add     ax, cx
-
     mov     fs, ax
     mov     [read_DAP.b_segment], ax
 
-    pop     ax
-
+    pop     eax
     call    next_cluster
     cmp     eax, 0x0FFFFFF7
     jb      load_loop
@@ -59,12 +72,12 @@ load_loop:
     mov     dl, [drive_number]
     push    edx
 
-    mov     ax, read_buffer_segment
+    xor     ax, ax
     mov     ds, ax
     mov     es, ax
     mov     fs, ax
     mov     gs, ax
-    jmp     read_buffer_segment:0
+    jmp     0:(read_buffer_segment << 4)
 
 not_found_die:
     mov     bl, STAGE2_NOT_FOUND_CODE

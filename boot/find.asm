@@ -31,7 +31,7 @@ find_loop:
             add     si, 0x20
             loop    .entry_loop
         call    next_cluster
-        cmp     eax, 0x0FFFFFF8
+        cmp     eax, 0x0FFFFFF7
         jb      find_loop
         jmp     not_found_die
 
