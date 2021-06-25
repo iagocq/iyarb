@@ -6,8 +6,5 @@ set tdesc filename target.xml
 layout asm
 layout regs
 focus cmd
-break *0x7c00
-break stage1.asm:127
-break *0x70000
-break *0x700a8
+break *0x500
 list

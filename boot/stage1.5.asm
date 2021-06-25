@@ -70,14 +70,26 @@ load_loop:
 .done:
     xor     edx, edx
     mov     dl, [drive_number]
-    push    edx
 
-    xor     ax, ax
+    lgdt    [cs:gdt_desc]   ; load gdt
+
+    mov     eax, cr0        ; set PE bit
+    or      al, 1           ;
+    mov     cr0, eax        ;
+
+    jmp     0x08:enter_pm
+[bits 32]
+enter_pm:
+    mov     ax, 0x18
     mov     ds, ax
     mov     es, ax
     mov     fs, ax
     mov     gs, ax
-    jmp     0:(read_buffer_segment << 4)
+    mov     ss, ax
+
+    push    edx
+    jmp     0x10:(read_buffer_segment << 4)
+[bits 16]
 
 not_found_die:
     mov     bl, STAGE2_NOT_FOUND_CODE
@@ -98,6 +110,41 @@ direct_die:
 %include "boot/disk.asm"
 
 stage2_path_far: db 'BOOT       STAGE2     $'
+
+gdt:
+
+.null:              ; selector 0x00
+    times 8 db 0    ; must be all zeroes
+
+.code_high:         ; selector 0x08
+    dw 0xffff       ; limit [ 0:15]
+    dw 0x0000       ; base  [ 0:15]
+    db 0x07         ; base  [16:25]
+    db 0b10011010   ; S + privilege + P + type (0b1010 => Execute/Read)
+    db 0b11001111   ; granularity + D flag + limit [16:19]
+    db 0x00         ; base  [26:31]
+
+.code_low:          ; selector 0x10
+    dw 0xffff       ; limit [ 0:15]
+    dw 0x0000       ; base  [ 0:15]
+    db 0x00         ; base  [16:25]
+    db 0b10011010   ; S + privilege + P + type (0b1010 => Execute/Read)
+    db 0b11001111   ; granularity + D flag + limit [16:19]
+    db 0x00         ; base  [26:31]
+
+.data_low:          ; selector 0x18
+    dw 0xffff       ; limit [ 0:15]
+    dw 0x0000       ; base  [ 0:15]
+    db 0x00         ; base  [16:25]
+    db 0b10010010   ; S + privilege + P + type (0b0010 => Read/Write)
+    db 0b11001111   ; granularity + D flag + limit [16:19]
+    db 0x00         ; base  [26:31]
+
+.end:
+
+gdt_desc:
+    .limit: dw gdt.end-gdt-1
+    .base:  dd 0x70000+gdt
 
 times 512-($-$$) db 0x44
 
