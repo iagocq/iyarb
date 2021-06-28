@@ -1,5 +1,5 @@
 [package]
-name = "stage2"
+name = "stage2rust"
 version = "0.1.0"
 authors = ["iagocq <18238046+iagocq@users.noreply.github.com>"]
 edition = "2018"
@@ -7,12 +7,16 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-[build-dependencies]
-nasm-rs = "0.2.0"
+volatile = "0.4.4"
+lazy_static = { version = "1.4.0", features = [ "spin_no_std" ] }
+spin = "0.9.1"
 
 [profile.dev]
-#panic = "abort"
+opt-level = "s"
 
 [profile.release]
 panic = "abort"
+opt-level = "s"
+
+[lib]
+crate-type = [ "staticlib" ]

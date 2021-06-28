@@ -1,11 +1,9 @@
-add-symbol-file obj/stage1.5.elf
+add-symbol-file obj/stage2.elf
 target remote localhost:1234
 set disassembly-flavor intel
 set tdesc filename target.xml
-layout asm
-layout regs
+layout src
 focus cmd
-break *0x70000
-break *0x7011d
-set trace-commands on
+break _rust_entry
 set logging on
+list

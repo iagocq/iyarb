@@ -5,15 +5,10 @@
     "target-endian": "little",
     "target-pointer-width": "32",
     "target-c-int-width": "32",
-    "os": "none",
+    "os": "stage2",
     "executables": true,
-    "linker-flavor": "ld.lld",
-    "linker": "rust-lld",
-    "pre-link-args": {
-        "ld.lld": [
-            "--script=stage2.ld"
-        ]
-    },
+    "linker-flavor": "ld",
+    "linker": "./link.sh",
     "panic-strategy": "abort",
     "panic": "abort",
     "disable-redzone": true,
