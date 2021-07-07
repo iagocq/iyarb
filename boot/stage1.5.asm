@@ -111,7 +111,10 @@ relocate_elf:
     jnz     .no_hack
     mov     esi, ebp                ; hack to skip first 0x500 bytes of file, otherwise bad things happen
     mov     edi, ebp                ;
-    mov     cx, bx
+
+    cmp     dx, prog_headers        ;
+    jnz     .no_hack                ;
+    mov     cx, bx                  ; skip first 0x500 bytes if it's the first section too
     neg     cx
 .no_hack:
     add     esi, ebp                ; add an offset to esi because the image wasn't loaded at 0x0000
@@ -127,6 +130,7 @@ relocate_elf:
     mov     es, ax
 
     add     cx, [gs:edx+0x10]       ; segment size in image
+    jz      .next
 .relocate:
     lodsb
     stosb
@@ -138,7 +142,6 @@ relocate_elf:
 .done:
     movzx   edx, BYTE [gs:drive_number]
 
-    push    edx
     jmp     0:(read_buffer_segment << 4)
 
 not_found_die:

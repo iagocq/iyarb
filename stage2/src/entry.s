@@ -35,19 +35,23 @@ enter_pm:
     sub     ecx, esi
     add     ecx, 3
     shr     ecx, 2
-.reloc_loop:
+reloc_loop:
     lodsd
     stosd
-    loop    .reloc_loop
+    loop    reloc_loop
 
     xor     eax, eax
     mov     edi, offset _bss_start
     mov     ecx, offset _bss_end
+    sub     ecx, edi
     add     ecx, 3
     shr     ecx, 2
     rep stosd
 
-    jmp     test
+    push    edx
+    call    test
+loop_forever:
+    jmp     loop_forever
 
 .section .entry.rodata, "a"
 
