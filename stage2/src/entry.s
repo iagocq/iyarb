@@ -3,6 +3,9 @@
 .code16
 
 _entry:
+    xor     ax, ax
+    mov     ds, ax
+
     lgdt    [gdt_desc]
     mov     eax, cr0
     or      al, 1
@@ -18,7 +21,32 @@ enter_pm:
     mov     gs, ax
     mov     ss, ax
 
-    mov     word ptr [0xb8000], 0x2f59
+    in      al, 0x92    # enable A20 line via Fast A20
+    test    al, 2       #
+    jnz     after       #
+    or      al, 2       #
+    and     al, 0xFE    #
+    out     0x92, al    #
+    after:              #
+
+    mov     esi, offset _phys_start
+    mov     edi, offset _reloc_start
+    mov     ecx, offset _phys_end
+    sub     ecx, esi
+    add     ecx, 3
+    shr     ecx, 2
+.reloc_loop:
+    lodsd
+    stosd
+    loop    .reloc_loop
+
+    xor     eax, eax
+    mov     edi, offset _bss_start
+    mov     ecx, offset _bss_end
+    add     ecx, 3
+    shr     ecx, 2
+    rep stosd
+
     jmp     test
 
 .section .entry.rodata, "a"

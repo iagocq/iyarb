@@ -97,7 +97,7 @@ relocate_elf:
 
     mov     cx, dx
     pop     dx
-    mov     ebx, (read_buffer_segment << 4)
+    mov     ebp, (read_buffer_segment << 4)
 .phe_loop:
     mov     eax, [gs:edx]           ; segment type
     cmp     eax, 0x00000001         ; loadable segment
@@ -105,17 +105,16 @@ relocate_elf:
     jne     .next
     xor     cx, cx
 
-
     mov     esi, [gs:edx+0x04]      ; offset of segment in image
     mov     edi, [gs:edx+0x0c]      ; physical address
     test    esi, esi                ; first entry is (hopefully) in the correct place
     jnz     .no_hack
-    mov     esi, ebx                ; hack to skip first 0x500 bytes of file, otherwise bad things happen
-    mov     edi, ebx                ;
+    mov     esi, ebp                ; hack to skip first 0x500 bytes of file, otherwise bad things happen
+    mov     edi, ebp                ;
     mov     cx, bx
     neg     cx
 .no_hack:
-    add     esi, ebx                ; add an offset to esi because the image wasn't loaded at 0x0000
+    add     esi, ebp                ; add an offset to esi because the image wasn't loaded at 0x0000
 
     mov     eax, esi                ;
     and     esi, 0x0000000f         ; esi = offset & 0x0000000f
@@ -138,13 +137,6 @@ relocate_elf:
     loop    .phe_loop
 .done:
     movzx   edx, BYTE [gs:drive_number]
-
-    xor     ax, ax
-    mov     ds, ax
-    mov     es, ax
-    mov     fs, ax
-    mov     gs, ax
-    mov     ss, ax
 
     push    edx
     jmp     0:(read_buffer_segment << 4)
