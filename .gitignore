@@ -7,4 +7,5 @@ obj
 dev.d
 test.img
 
-stage2/target
+stage2*/target
+gdb.txt

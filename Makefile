@@ -1,5 +1,5 @@
 all: build
-build: obj/boot/stage1.bin obj/boot/stage1.5.bin obj/boot/mbr.bin obj/stage2.bin
+build: obj/boot/stage1.bin obj/boot/stage1.5.bin obj/boot/mbr.bin obj/stage2.elf
 
 obj/%.bin: obj/%.o
 	ld -melf_i386 -T boot/$(notdir $(basename $<)).ld -o $<.elf $<
@@ -10,24 +10,20 @@ obj/%.o: %.asm | obj/boot obj/stage2/asm
 
 -include obj/boot/*.d
 
-obj/stage2.bin: obj/stage2.elf
-	objcopy -O binary $^ $@
-obj/stage2.elf: obj/libstage2asm.a obj/libstage2rust.a | obj
+obj/stage2.elf: obj/libstage2.a | obj
 	ld --gc-sections -melf_i386 -T stage2/stage2.ld -o $@ $^
 
 PROFILE := $(or $(PROFILE),debug)
 CARGO_FLAGS := $(if $(subst release,,$(PROFILE)),,--release)
+CARGO_ENV := CARGO_BUILD_DEP_INFO_BASEDIR="$(shell pwd)"
 
-obj/libstage2rust.a: stage2/target/i686-stage2/$(PROFILE)/libstage2rust.a | obj
+obj/libstage2.a: stage2/target/i686-stage2/$(PROFILE)/libstage2.a | obj
 	cp $^ $@
-stage2/target/i686-stage2/$(PROFILE)/libstage2rust.a:
-	cd stage2 && cargo build $(CARGO_FLAGS)
 
-obj/libstage2asm.a: obj/stage2/asm/bios_int.o obj/stage2/asm/entry.o obj/stage2/asm/mode_switch.o
-	ar cr $@ $^
+stage2/target/i686-stage2/$(PROFILE)/libstage2.a:
+	cd stage2 && $(CARGO_ENV) cargo build $(CARGO_FLAGS)
 
--include stage2/target/i686-stage2/$(PROFILE)/libstage2rust.d
--include obj/stage2/asm/*.d
+-include stage2/target/i686-stage2/$(PROFILE)/libstage2.d
 
 obj obj/boot obj/stage2/asm:
 	mkdir -p $@
@@ -35,6 +31,7 @@ obj obj/boot obj/stage2/asm:
 clean:
 	rm -rf obj
 	cd stage2 && cargo clean
+	cd stage2-entry && cargo clean
 
 install: build
 	./install.sh

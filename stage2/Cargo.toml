@@ -1,5 +1,5 @@
 [package]
-name = "stage2rust"
+name = "stage2"
 version = "0.1.0"
 authors = ["iagocq <18238046+iagocq@users.noreply.github.com>"]
 edition = "2018"
@@ -11,12 +11,12 @@ volatile = "0.4.4"
 lazy_static = { version = "1.4.0", features = [ "spin_no_std" ] }
 spin = "0.9.1"
 
+[lib]
+crate-type = [ "staticlib" ]
+
 [profile.dev]
 opt-level = "s"
 
 [profile.release]
 panic = "abort"
 opt-level = "s"
-
-[lib]
-crate-type = [ "staticlib" ]

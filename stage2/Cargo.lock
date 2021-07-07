@@ -42,7 +42,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "stage2rust"
+name = "stage2"
 version = "0.1.0"
 dependencies = [
  "lazy_static",

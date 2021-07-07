@@ -3,17 +3,20 @@ ENTRY(_entry)
 SECTIONS {
     . = 0x500;
 
-    .text : ALIGN(8) {
-        *(.entry)
-        *(.text .text.*)
+    .entry 0x500 : AT ( 0x500 ) {
+        *(.entry*)
+    }
+
+    .text 0x100000 : AT ( ADDR(.entry) + SIZEOF(.entry) ) {
+        *(.text*)
     }
 
     .data : ALIGN(8) {
-        *(.data .data.*)
+        *(.data*)
     }
 
     .rodata : ALIGN(8) {
-        *(.rodata .rodata.*)
+        *(.rodata*)
     }
 
     .bss : ALIGN(8) {
