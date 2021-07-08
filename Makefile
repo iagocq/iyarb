@@ -1,7 +1,7 @@
 all: build
-build: obj/boot/stage1.bin obj/boot/stage1.5.bin obj/boot/mbr.bin obj/stage2.elf
+build: obj/boot/stage1.bin obj/boot/stage1.5.bin obj/boot/mbr.bin obj/stage2.bin
 
-obj/%.bin: obj/%.o boot/$(notdir $(basename $<)).ld
+obj/%.bin: obj/%.o $(notdir $(basename %)).ld
 	ld -melf_i386 -T boot/$(notdir $(basename $<)).ld -o $<.elf $<
 	objcopy -O binary $<.elf $@
 
@@ -10,6 +10,8 @@ obj/%.o: %.asm | obj/boot obj/stage2/asm
 
 -include obj/boot/*.d
 
+obj/stage2.bin: obj/stage2.elf
+	objcopy -O binary $< $@
 obj/stage2.elf: obj/libstage2.a stage2/stage2.ld | obj
 	ld --gc-sections -melf_i386 -T stage2/stage2.ld -o $@ $<
 
@@ -31,7 +33,6 @@ obj obj/boot obj/stage2/asm:
 clean:
 	rm -rf obj
 	cd stage2 && cargo clean
-	cd stage2-entry && cargo clean
 
 install: build
 	./install.sh

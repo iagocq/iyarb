@@ -54,6 +54,10 @@ TODO
 - relocation address: where code and data expect to be at runtime.
 - load address: where code and data will be loaded in memory.
 
+stage1.5's short lived elf loader was removed because I got so confused
+I didn't realize objcopy already put stuff in the flat binary where it should be
+relative to load addresses. Lesson learned.
+
 ### The `test` target -- outdated
 
 `test` basically runs cargo test, but the devil is in the details.

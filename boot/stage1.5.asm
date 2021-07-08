@@ -66,79 +66,6 @@ load_loop:
     call    next_cluster
     cmp     eax, 0x0FFFFFF7
     jb      load_loop
-
-relocate_elf:
-    xor     ebx, ebx
-    mov     edx, ebx
-
-    mov     ax, read_buffer_segment ;
-    mov     ds, ax                  ; use ds as a helper for reading values from the elf
-    mov     esi, [0x1c]             ; offset of the program header table
-    mov     bp, si
-
-    mov     cx, [0x2c]              ; number of entries in the program header table
-    mov     di, cx                  ; save that number
-    mov     ax, [0x2a]              ; size of an entry
-    mov     bx, ax                  ; save the size
-    mul     cx                      ; ax = entry_size * n_entries
-                                    ; assuming the total size is not enormous
-    mov     dx, di
-    mov     cx, ax                  ; cx = ax
-
-    mov     ax, es
-    mov     gs, ax
-
-    mov     di, prog_headers
-    push    di
-.save_ph:
-    lodsb
-    stosb
-    loop    .save_ph
-
-    mov     cx, dx
-    pop     dx
-    mov     ebp, (read_buffer_segment << 4)
-.phe_loop:
-    mov     eax, [gs:edx]           ; segment type
-    cmp     eax, 0x00000001         ; loadable segment
-    push    cx
-    jne     .next
-    xor     cx, cx
-
-    mov     esi, [gs:edx+0x04]      ; offset of segment in image
-    mov     edi, [gs:edx+0x0c]      ; physical address
-    test    esi, esi                ; first entry is (hopefully) in the correct place
-    jnz     .no_hack
-    mov     esi, ebp                ; hack to skip first 0x500 bytes of file, otherwise bad things happen
-    mov     edi, ebp                ;
-
-    cmp     dx, prog_headers        ;
-    jnz     .no_hack                ;
-    mov     cx, bx                  ; skip first 0x500 bytes if it's the first section too
-    neg     cx
-.no_hack:
-    add     esi, ebp                ; add an offset to esi because the image wasn't loaded at 0x0000
-
-    mov     eax, esi                ;
-    and     esi, 0x0000000f         ; esi = offset & 0x0000000f
-    shr     eax, 4                  ; eax = offset >> 4
-    mov     ds, ax
-
-    mov     eax, edi                ;
-    and     edi, 0x0000000f         ; edi = addr & 0x0000000f
-    shr     eax, 4                  ; eax = addr >> 4
-    mov     es, ax
-
-    add     cx, [gs:edx+0x10]       ; segment size in image
-    jz      .next
-.relocate:
-    lodsb
-    stosb
-    loop    .relocate
-.next:
-    pop     cx
-    add     dx, bx
-    loop    .phe_loop
 .done:
     movzx   edx, BYTE [gs:drive_number]
 
@@ -162,9 +89,8 @@ direct_die:
 
 %include "boot/disk.asm"
 
-stage2_path_far: db 'BOOT       STAGE2  ELF$'
+stage2_path_far: db 'BOOT       STAGE2     $'
 
 times 512-($-$$) db 0x44
 
 %include "boot/bss.asm"
-prog_headers:   resb 256

@@ -77,3 +77,5 @@ gdt_data:               # selector 0x10
     .byte 0b11001111    # granularity + D flag + limit [16:19]
     .byte 0x00          # base  [26:31]
 gdt_end:
+
+.section .text
