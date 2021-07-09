@@ -49,7 +49,7 @@ reloc_loop:
     rep stosd
 
     push    edx
-    call    test
+    call    rust_entry
 loop_forever:
     jmp     loop_forever
 

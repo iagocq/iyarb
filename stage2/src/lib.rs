@@ -1,15 +1,14 @@
 #![no_std]
-#![feature(global_asm)]
+#![feature(global_asm, asm)]
+
+mod port;
+mod vga;
 
 global_asm!(include_str!("entry.s"));
 
 #[no_mangle]
-pub extern "C" fn test(_drive_number: u32) -> ! {
-    unsafe {
-        let vga = 0xb8000 as *mut u64;
-
-        *vga = 0x2f592f412f4b2f4f;
-    };
+pub extern "C" fn rust_entry(_drive_number: u32) -> ! {
+    println!("oi");
 
     loop {}
 }

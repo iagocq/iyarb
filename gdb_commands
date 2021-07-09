@@ -3,7 +3,7 @@ add-symbol-file obj/stage2.elf
 target remote localhost:1234
 set disassembly-flavor intel
 #set tdesc filename target.xml
-layout regs
+layout src
 focus cmd
 set logging on
-break test
+break rust_entry

@@ -10,14 +10,13 @@ SECTIONS {
     _phys_start = ADDR(.entry) + SIZEOF(.entry);
     .text 0x100000 : AT(_phys_start) {
         _reloc_start = .;
-        *(.text* .data* .rodata*);
+        *(.text* .got* .data* .rodata*);
         . = ALIGN(8);
         _reloc_end = .;
     }
     _phys_end = _phys_start + SIZEOF(.text);
 
-    _phys_stack_start = _phys_end;
-    .stack 0x200000 : AT(_phys_stack_start) {
+    .stack 0x200000 : {
         _stack_bottom = .;
         . += 0xfffff;
         _stack_top = .;
@@ -25,7 +24,7 @@ SECTIONS {
 
     .bss : ALIGN(8) {
         _bss_start = .;
-        *(.bss);
+        *(.bss*);
         _bss_end = .;
     }
 
