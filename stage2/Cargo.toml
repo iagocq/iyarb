@@ -10,6 +10,7 @@ edition = "2018"
 volatile = "0.4.4"
 lazy_static = { version = "1.4.0", features = [ "spin_no_std" ] }
 spin = "0.9.1"
+bit_field = "0.10.1"
 
 [lib]
 crate-type = [ "staticlib" ]

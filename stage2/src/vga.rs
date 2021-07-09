@@ -200,9 +200,9 @@ impl Writer {
     fn new_line(&mut self) {
         self.col = 0;
         self.row += 1;
-        if self.col >= BUFFER_HEIGHT {
+        if self.row >= BUFFER_HEIGHT {
             self.scroll(1);
-            self.col = BUFFER_HEIGHT - 1;
+            self.row = BUFFER_HEIGHT - 1;
         }
     }
 
@@ -241,7 +241,7 @@ impl Writer {
 
     /// Tell the VGA hardware to update the cursor position to our internal one.
     fn update_cursor(&self) {
-        self.set_cursor_position(self.col, self.row);
+        unsafe { self.set_cursor_position(self.col, self.row); }
     }
 
     fn calc_offset(&self, col: usize, row: usize) -> u16 {
@@ -249,7 +249,7 @@ impl Writer {
     }
 
     /// Set the hardware cursor position directly
-    fn set_cursor_position(&self, col: usize, row: usize) {
+    unsafe fn set_cursor_position(&self, col: usize, row: usize) {
         let addr = crate::port::Port::new(VGA_CRTC_REG_ADDR);
         let data = crate::port::Port::new(VGA_CRTC_REG_DATA);
         let offset = self.calc_offset(col, row);
