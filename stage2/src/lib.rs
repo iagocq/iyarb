@@ -21,13 +21,15 @@ pub extern "C" fn rust_entry(_drive_number: u32) -> ! {
     unsafe { asm!("int 3") }
     unsafe { asm!("xor edx, edx; div edx", out("edx") _, out("eax") _)}
     println!("test 2");
-    loop {}
+    panic!("1");
 }
 
 use core::panic::PanicInfo;
+use vga::{Color, ColorCode};
+const PANIC_COLOR: ColorCode = ColorCode::new(Color::LightRed, Color::Black);
+
 #[panic_handler]
 pub fn panic_handler(info: &PanicInfo) -> ! {
-    use vga::{ColorCode, Color};
-    colorln!(ColorCode::new(Color::LightRed, Color::Black), "{}", info);
+    colorln!(PANIC_COLOR, "{}", info);
     loop {}
 }
