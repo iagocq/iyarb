@@ -1,3 +1,4 @@
+/// A type used for `lidtr`- and `lgdtr`-type instructions.
 #[allow(dead_code)]
 #[repr(packed)]
 pub struct DescriptorTableRegister {
@@ -6,6 +7,7 @@ pub struct DescriptorTableRegister {
 }
 
 impl DescriptorTableRegister {
+    /// Create a new register value from a `base` and `size` of the table.
     pub fn new(base: u32, size: u16) -> Self {
         DescriptorTableRegister {
             base,

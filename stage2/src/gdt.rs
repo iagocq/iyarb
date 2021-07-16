@@ -6,6 +6,7 @@ pub struct SegmentSelector(pub u16);
 
 macro_rules! segment_selector {
     ($selector:ident) => {
+        /// Get the current value of the selector register.
         pub fn $selector() -> SegmentSelector {
             let mut s: u16;
             unsafe { asm!(concat!("mov ax, ", stringify!($selector)), out("ax") s) }

@@ -6,7 +6,7 @@ use self::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
 use crate::colorln;
 use crate::vga::{Color, ColorCode};
-const INT_COLOR: ColorCode = ColorCode::new(Color::Yellow, Color::Black);
+const INT_COLOR: ColorCode = ColorCode::new(Color::Brown, Color::Black);
 
 lazy_static! {
     pub static ref IDT: InterruptDescriptorTable = {

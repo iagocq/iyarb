@@ -16,6 +16,7 @@ global_asm!(include_str!("entry.s"));
 pub extern "C" fn rust_entry(_drive_number: u32) -> ! {
     vga::clear_screen();
     interrupts::IDT.load();
+    colorln!(ColorCode::new(Color::Green, Color::Black), "drive_number = 0x{:x}", _drive_number);
     unsafe { asm!("int 3") }
     println!("test");
     unsafe { asm!("int 3") }
@@ -26,7 +27,7 @@ pub extern "C" fn rust_entry(_drive_number: u32) -> ! {
 
 use core::panic::PanicInfo;
 use vga::{Color, ColorCode};
-const PANIC_COLOR: ColorCode = ColorCode::new(Color::LightRed, Color::Black);
+const PANIC_COLOR: ColorCode = ColorCode::new(Color::Red, Color::Black);
 
 #[panic_handler]
 pub fn panic_handler(info: &PanicInfo) -> ! {

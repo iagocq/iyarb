@@ -32,6 +32,7 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
+/// println! wrapper that temporarily changes the output color.
 #[macro_export]
 macro_rules! colorln {
     ($color:expr, $($arg:tt)*) => {{
@@ -48,7 +49,7 @@ pub fn _print(args: fmt::Arguments) {
     WRITER.lock().write_fmt(args).unwrap();
 }
 
-/// Enum of all VGA colors
+/// Enum of all VGA colors.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Color {
@@ -94,17 +95,21 @@ impl From<u8> for Color {
     }
 }
 
+/// A combination of 2 VGA colors, one for the foreground and the other for the
+/// background.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ColorCode(u8);
 
 impl ColorCode {
+    /// Create a new ColorCode from foreground and background `Color`s.
     pub const fn new(foreground: Color, background: Color) -> ColorCode {
         let color = (background as u8) << 4 | (foreground as u8);
         ColorCode(color)
     }
 }
 
+/// A cell of the VGA screen buffer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 struct ScreenCell {
@@ -134,11 +139,14 @@ const BUFFER_HEIGHT: usize = 25;
 use lazy_static::lazy_static;
 use volatile::Volatile;
 
+/// Flat representation of the VGA screen buffer.
 #[repr(transparent)]
 struct Buffer {
     chars: [[Volatile<ScreenCell>; BUFFER_WIDTH]; BUFFER_HEIGHT]
 }
 
+/// An abstraction over the VGA screen buffer, that keeps tracks of the current
+/// column, row, and character color.
 pub struct Writer {
     col: usize,
     row: usize,

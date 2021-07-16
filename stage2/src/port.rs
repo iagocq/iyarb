@@ -1,5 +1,9 @@
 //! Interface for communicating with x86 IO ports
 
+#![allow(dead_code)]
+
+/// This type represents an x86 port accessible via the `in` and `out`
+/// instructions. 
 pub struct Port(u16);
 
 impl Port {
