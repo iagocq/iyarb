@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct SegmentSelector(pub u16);

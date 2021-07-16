@@ -7,7 +7,7 @@ use spin::Mutex;
 
 lazy_static! {
     pub static ref WRITER: Mutex<Writer> = {
-        let mut writer = Writer {
+        let writer = Writer {
             col: 0,
             row: 0,
             color: ColorCode::new(Color::LightGray, Color::Black),
@@ -17,7 +17,6 @@ lazy_static! {
             },
             buffer: unsafe { &mut *(0xb8000 as *mut Buffer) }
         };
-        writer.clear_screen();
         Mutex::new(writer)
     };
 }
@@ -31,6 +30,16 @@ macro_rules! print {
 macro_rules! println {
     () => ($crate::print!("\n"));
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! colorln {
+    ($color:expr, $($arg:tt)*) => {{
+        let old_color = $crate::vga::WRITER.lock().color;
+        $crate::vga::WRITER.lock().color = $color;
+        println!($($arg)*);
+        $crate::vga::WRITER.lock().color = old_color;
+    }}
 }
 
 #[doc(hidden)]
@@ -90,7 +99,7 @@ impl From<u8> for Color {
 pub struct ColorCode(u8);
 
 impl ColorCode {
-    fn new(foreground: Color, background: Color) -> ColorCode {
+    pub fn new(foreground: Color, background: Color) -> ColorCode {
         let color = (background as u8) << 4 | (foreground as u8);
         ColorCode(color)
     }
@@ -133,7 +142,7 @@ struct Buffer {
 pub struct Writer {
     col: usize,
     row: usize,
-    color: ColorCode,
+    pub color: ColorCode,
     blank: ScreenCell,
     buffer: &'static mut Buffer
 }
@@ -153,7 +162,6 @@ impl Writer {
                     self.new_line();
                 }
 
-                let color = self.color;
                 self.buffer.chars[self.row][self.col].write(ScreenCell {
                     character: byte,
                     color: self.color
@@ -192,9 +200,11 @@ impl Writer {
     }
 
     /// Change the current color used to print new text.
+    /*
     pub fn set_color(&mut self, color: ColorCode) {
         self.color = color;
     }
+    */
 
     /// Move the cursor to a new line, scrolling the screen as necessary.
     fn new_line(&mut self) {
@@ -236,7 +246,7 @@ impl Writer {
         let foreground: Color = byte.into();
         let background: Color = (byte >> 4).into();
 
-        self.set_color(ColorCode::new(foreground, background));
+        self.color = ColorCode::new(foreground, background);
     }
 
     /// Tell the VGA hardware to update the cursor position to our internal one.
@@ -267,6 +277,10 @@ impl Writer {
 
         addr.write_u8(last_index);
     }
+}
+
+pub fn clear_screen() {
+    WRITER.lock().clear_screen();
 }
 
 use core::fmt;

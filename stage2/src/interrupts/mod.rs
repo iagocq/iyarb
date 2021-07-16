@@ -1,6 +1,6 @@
 mod idt;
 
-use crate::{port::Port, println};
+use crate::println;
 use lazy_static::lazy_static;
 use self::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
@@ -8,11 +8,17 @@ use self::idt::{InterruptDescriptorTable, InterruptStackFrame};
 lazy_static! {
     pub static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
-        idt[0].set_handler(division_error);
+        idt[0] = Some(division_error);
+        idt[3] = Some(breakpoint);
         idt
     };
 }
 
-extern "x86-interrupt" fn division_error(stack_frame: InterruptStackFrame) {
-    println!("Division Error!")
+fn division_error(stack_frame: &mut InterruptStackFrame) {
+    unsafe { stack_frame.as_mut() }.update(|v| v.eip += 2);
+    println!("Division Error!");
+}
+
+fn breakpoint(_stack_frame: &mut InterruptStackFrame) {
+    println!("Breakpoint!");
 }

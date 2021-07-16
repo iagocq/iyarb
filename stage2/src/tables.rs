@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 #[repr(packed)]
 pub struct DescriptorTableRegister {
     limit: u16,

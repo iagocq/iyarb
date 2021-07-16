@@ -1,0 +1,8 @@
+[package]
+name = "idt_generator"
+version = "0.1.0"
+edition = "2018"
+publish = false
+
+[lib]
+proc-macro = true
