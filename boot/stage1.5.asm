@@ -67,7 +67,7 @@ load_loop:
     cmp     eax, 0x0FFFFFF7
     jb      load_loop
 .done:
-    movzx   edx, BYTE [gs:drive_number]
+    movzx   edx, BYTE [drive_number]
 
     jmp     0:(read_buffer_segment << 4)
 
