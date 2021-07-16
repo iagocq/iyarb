@@ -48,6 +48,9 @@ reloc_loop:
     shr     ecx, 2
     rep stosd
 
+    mov     esp, offset _stack_top
+    and     esp, 0xfffffff0
+
     push    edx
     call    rust_entry
 loop_forever:
