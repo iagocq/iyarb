@@ -3,22 +3,29 @@ ENTRY(_entry)
 SECTIONS {
     . = 0x500;
 
-    .text : ALIGN(8) {
-        *(.entry)
-        *(.text .text.*)
+    .entry 0x500 : AT(0x500) {
+        *(.entry*);
     }
 
-    .data : ALIGN(8) {
-        *(.data .data.*)
+    _phys_start = ADDR(.entry) + SIZEOF(.entry);
+    .text 0x100000 : AT(_phys_start) {
+        _reloc_start = .;
+        *(.text* .got* .data* .rodata*);
+        . = ALIGN(8);
+        _reloc_end = .;
     }
+    _phys_end = _phys_start + SIZEOF(.text);
 
-    .rodata : ALIGN(8) {
-        *(.rodata .rodata.*)
+    .stack 0x200000 : {
+        _stack_bottom = .;
+        . += 0xfffff;
+        _stack_top = .;
     }
 
     .bss : ALIGN(8) {
         _bss_start = .;
-        *(.bss)
+        *(.bss*);
         _bss_end = .;
     }
+
 }

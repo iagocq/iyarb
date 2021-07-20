@@ -66,18 +66,9 @@ load_loop:
     call    next_cluster
     cmp     eax, 0x0FFFFFF7
     jb      load_loop
-
 .done:
     movzx   edx, BYTE [drive_number]
 
-    xor     ax, ax
-    mov     ds, ax
-    mov     es, ax
-    mov     fs, ax
-    mov     gs, ax
-    mov     ss, ax
-
-    push    edx
     jmp     0:(read_buffer_segment << 4)
 
 not_found_die:

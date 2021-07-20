@@ -1,4 +1,4 @@
-//! Interface for the VGA screen buffer.
+//! Interface for the VGA screen buffer and cursor.
 //!
 //! Provides utilities to manipulate the screen,
 //! like printing strings and clearing and scrolling the screen
@@ -7,7 +7,7 @@ use spin::Mutex;
 
 lazy_static! {
     pub static ref WRITER: Mutex<Writer> = {
-        let mut writer = Writer {
+        let writer = Writer {
             col: 0,
             row: 0,
             color: ColorCode::new(Color::LightGray, Color::Black),
@@ -17,14 +17,13 @@ lazy_static! {
             },
             buffer: unsafe { &mut *(0xb8000 as *mut Buffer) }
         };
-        writer.clear_screen();
         Mutex::new(writer)
     };
 }
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => ($crate::vga_screen::_print(format_args!($($arg)*)));
+    ($($arg:tt)*) => ($crate::vga::_print(format_args!($($arg)*)));
 }
 
 #[macro_export]
@@ -33,13 +32,24 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
+/// println! wrapper that temporarily changes the output color.
+#[macro_export]
+macro_rules! colorln {
+    ($color:expr, $($arg:tt)*) => {{
+        let old_color = $crate::vga::WRITER.lock().color;
+        $crate::vga::WRITER.lock().color = $color;
+        println!($($arg)*);
+        $crate::vga::WRITER.lock().color = old_color;
+    }}
+}
+
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
 }
 
-/// Enum of all VGA colors
+/// Enum of all VGA colors.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Color {
@@ -85,17 +95,21 @@ impl From<u8> for Color {
     }
 }
 
+/// A combination of 2 VGA colors, one for the foreground and the other for the
+/// background.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ColorCode(u8);
 
 impl ColorCode {
-    fn new(foreground: Color, background: Color) -> ColorCode {
+    /// Create a new ColorCode from foreground and background `Color`s.
+    pub const fn new(foreground: Color, background: Color) -> ColorCode {
         let color = (background as u8) << 4 | (foreground as u8);
         ColorCode(color)
     }
 }
 
+/// A cell of the VGA screen buffer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 struct ScreenCell {
@@ -125,18 +139,24 @@ const BUFFER_HEIGHT: usize = 25;
 use lazy_static::lazy_static;
 use volatile::Volatile;
 
+/// Flat representation of the VGA screen buffer.
 #[repr(transparent)]
 struct Buffer {
     chars: [[Volatile<ScreenCell>; BUFFER_WIDTH]; BUFFER_HEIGHT]
 }
 
+/// An abstraction over the VGA screen buffer, that keeps tracks of the current
+/// column, row, and character color.
 pub struct Writer {
     col: usize,
     row: usize,
-    color: ColorCode,
+    pub color: ColorCode,
     blank: ScreenCell,
     buffer: &'static mut Buffer
 }
+
+const VGA_CRTC_REG_ADDR: u16 = 0x3D4;
+const VGA_CRTC_REG_DATA: u16 = 0x3D5;
 
 impl Writer {
 
@@ -150,18 +170,15 @@ impl Writer {
                     self.new_line();
                 }
 
-                let row = self.row;
-                let col = self.col;
-
-                let color = self.color;
-                self.buffer.chars[row][col].write(ScreenCell {
+                self.buffer.chars[self.row][self.col].write(ScreenCell {
                     character: byte,
-                    color
+                    color: self.color
                 });
 
                 self.col += 1;
             }
         }
+        self.update_cursor();
     }
     
     /// Clear the entire screen.
@@ -169,6 +186,9 @@ impl Writer {
         for i in 0..BUFFER_HEIGHT {
             self.clear_row(i);
         }
+        self.col = 0;
+        self.row = 0;
+        self.update_cursor();
     }
 
     /// Write the string `s` to the screen.
@@ -188,17 +208,19 @@ impl Writer {
     }
 
     /// Change the current color used to print new text.
+    /*
     pub fn set_color(&mut self, color: ColorCode) {
         self.color = color;
     }
+    */
 
     /// Move the cursor to a new line, scrolling the screen as necessary.
     fn new_line(&mut self) {
         self.col = 0;
         self.row += 1;
-        if self.col >= BUFFER_HEIGHT {
+        if self.row >= BUFFER_HEIGHT {
             self.scroll(1);
-            self.col = BUFFER_HEIGHT - 1;
+            self.row = BUFFER_HEIGHT - 1;
         }
     }
 
@@ -232,8 +254,41 @@ impl Writer {
         let foreground: Color = byte.into();
         let background: Color = (byte >> 4).into();
 
-        self.set_color(ColorCode::new(foreground, background));
+        self.color = ColorCode::new(foreground, background);
     }
+
+    /// Tell the VGA hardware to update the cursor position to our internal one.
+    fn update_cursor(&self) {
+        unsafe { self.set_cursor_position(self.col, self.row); }
+    }
+
+    fn calc_offset(&self, col: usize, row: usize) -> u16 {
+        (row * BUFFER_WIDTH + col) as u16
+    }
+
+    /// Set the hardware cursor position directly
+    unsafe fn set_cursor_position(&self, col: usize, row: usize) {
+        let addr = crate::port::Port::new(VGA_CRTC_REG_ADDR);
+        let data = crate::port::Port::new(VGA_CRTC_REG_DATA);
+        let offset = self.calc_offset(col, row);
+
+        // Save the current index to restore before returning
+        let last_index = addr.read_u8();
+
+        // Select the Cursor Location High Register
+        addr.write_u8(0x0e);
+        data.write_u8((offset >> 8) as u8);
+    
+        // Select the Cursor Location Low Register
+        addr.write_u8(0x0f);
+        data.write_u8((offset & 0xff) as u8);
+
+        addr.write_u8(last_index);
+    }
+}
+
+pub fn clear_screen() {
+    WRITER.lock().clear_screen();
 }
 
 use core::fmt;

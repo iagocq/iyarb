@@ -1,51 +1,36 @@
 #![no_std]
-#![cfg_attr(test, no_main)]
-#![feature(asm, custom_test_frameworks)]
-#![test_runner(crate::test_runner)]
-#![reexport_test_harness_main = "test_main"]
+#![feature(global_asm, asm)]
+#![feature(abi_x86_interrupt)]
+#![feature(naked_functions)]
+#![feature(const_fn_union, const_fn_trait_bound)]
 
-pub mod vga_screen;
-mod qemu;
+mod gdt;
+mod interrupts;
+mod port;
+mod vga;
+mod tables;
+
+global_asm!(include_str!("entry.s"));
 
 #[no_mangle]
-pub extern "C" fn _rust_entry() -> ! {
-    println!("}}welcome to stage2");
-
-    #[cfg(test)]
-    test_main();
-
-    loop {}
+pub extern "C" fn rust_entry(_drive_number: u32) -> ! {
+    vga::clear_screen();
+    interrupts::IDT.load();
+    colorln!(ColorCode::new(Color::Green, Color::Black), "drive_number = 0x{:x}", _drive_number);
+    unsafe { asm!("int 3") }
+    println!("test");
+    unsafe { asm!("int 3") }
+    unsafe { asm!("xor edx, edx; div edx", out("edx") _, out("eax") _)}
+    println!("test 2");
+    panic!("1");
 }
 
 use core::panic::PanicInfo;
-#[cfg(not(test))]
+use vga::{Color, ColorCode};
+const PANIC_COLOR: ColorCode = ColorCode::new(Color::Red, Color::Black);
+
 #[panic_handler]
 pub fn panic_handler(info: &PanicInfo) -> ! {
-    println!("Panic: {}\n", info);
+    colorln!(PANIC_COLOR, "{}", info);
     loop {}
-}
-
-pub fn test_runner(tests: &[&dyn Fn()]) {
-    println!("Running {} tests", tests.len());
-
-    for test in tests {
-        test();
-    }
-
-    //qemu::exit(qemu::QemuExitCode::Success);
-}
-
-#[cfg(test)]
-#[panic_handler]
-pub fn test_panic_handler(info: &PanicInfo) -> ! {
-    println!("[failed]\n");
-    println!("Error: {}\n", info);
-    loop {}
-}
-
-#[test_case]
-fn trivial_assertion() {
-    print!("trivial assertion... ");
-    assert_eq!(1, 2);
-    println!("[ok]");
 }

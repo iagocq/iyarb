@@ -3,6 +3,16 @@
 version = 3
 
 [[package]]
+name = "bit_field"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dcb6dd1c2376d2e096796e234a70e17e94cc2d5d54ff8ce42b28cef1d0d359a4"
+
+[[package]]
+name = "idt_generator"
+version = "0.1.0"
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -19,6 +29,12 @@ checksum = "0382880606dff6d15c9476c416d18690b72742aa7b605bb6dd6ec9030fbf07eb"
 dependencies = [
  "scopeguard",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "acbf547ad0c65e31259204bd90935776d1c693cec2f4ff7abb7a1bbbd40dfe58"
 
 [[package]]
 name = "scopeguard"
@@ -42,10 +58,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "stage2rust"
+name = "stage2"
 version = "0.1.0"
 dependencies = [
+ "bit_field",
+ "idt_generator",
  "lazy_static",
+ "paste",
  "spin 0.9.1",
  "volatile",
 ]

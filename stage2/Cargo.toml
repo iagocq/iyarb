@@ -1,15 +1,26 @@
 [package]
-name = "stage2rust"
+name = "stage2"
 version = "0.1.0"
 authors = ["iagocq <18238046+iagocq@users.noreply.github.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+members = [
+    "idt-generator"
+]
+
 [dependencies]
 volatile = "0.4.4"
 lazy_static = { version = "1.4.0", features = [ "spin_no_std" ] }
 spin = "0.9.1"
+bit_field = "0.10.1"
+paste = "1.0"
+idt_generator = { path = "idt-generator" }
+
+[lib]
+crate-type = [ "staticlib" ]
 
 [profile.dev]
 opt-level = "s"
@@ -17,6 +28,3 @@ opt-level = "s"
 [profile.release]
 panic = "abort"
 opt-level = "s"
-
-[lib]
-crate-type = [ "staticlib" ]
